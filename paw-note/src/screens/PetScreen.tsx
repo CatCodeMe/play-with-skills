@@ -1,326 +1,136 @@
-import React from 'react';
-import {
-        View,
-        Text,
-        StyleSheet,
-        ScrollView,
-        TouchableOpacity,
-        Dimensions,
-} from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { RefreshControl } from 'react-native';
+import { YStack, XStack, Text, View, ScrollView } from 'tamagui';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { 
+  SimpleHeader, 
+  HeroCard, 
+  FeaturedCard, 
+  QuickActions,
+  ImageCard,
+  KnowledgeCard,
+  AICard,
+  TipCard,
+} from '../components';
+import { generateFeedData, aiCards } from '../data/mockData';
 import { colors } from '../theme/colors';
 
-const { width } = Dimensions.get('window');
-
 export default function PetScreen() {
-        // 获取问候语
-        const getGreeting = () => {
-                const hour = new Date().getHours();
-                if (hour < 12) return '早上好';
-                if (hour < 18) return '下午好';
-                return '晚上好';
-        };
+  const [refreshing, setRefreshing] = useState(false);
+  const [feedData, setFeedData] = useState(() => generateFeedData());
 
-        return (
-                <View style={styles.container}>
-                        {/* 渐变头部 */}
-                        <LinearGradient
-                                colors={[colors.primary, colors.primaryLight]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={styles.headerGradient}
-                        >
-                                <SafeAreaView edges={['top']}>
-                                        <View style={styles.headerContent}>
-                                                <View>
-                                                        <Text style={styles.greeting}>{getGreeting()} 👋</Text>
-                                                        <Text style={styles.headerTitle}>我的毛孩</Text>
-                                                </View>
-                                                <TouchableOpacity style={styles.settingsButton}>
-                                                        <Ionicons name="settings-outline" size={24} color="#FFF" />
-                                                </TouchableOpacity>
-                                        </View>
-                                </SafeAreaView>
-                        </LinearGradient>
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setFeedData(generateFeedData());
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
-                        <ScrollView
-                                style={styles.content}
-                                showsVerticalScrollIndicator={false}
-                                contentContainerStyle={styles.scrollContent}
-                        >
-                                {/* 添加宠物卡片 - 精美版 */}
-                                <TouchableOpacity activeOpacity={0.9}>
-                                        <LinearGradient
-                                                colors={['#FFF5F5', '#FFF0F0']}
-                                                style={styles.addPetCard}
-                                        >
-                                                <View style={styles.addPetIconContainer}>
-                                                        <LinearGradient
-                                                                colors={[colors.primary, colors.primaryDark]}
-                                                                style={styles.addPetIconBg}
-                                                        >
-                                                                <Ionicons name="add" size={32} color="#FFF" />
-                                                        </LinearGradient>
-                                                </View>
-                                                <Text style={styles.addPetTitle}>添加你的毛孩</Text>
-                                                <Text style={styles.addPetSubtitle}>
-                                                        记录它的每一个珍贵瞬间
-                                                </Text>
-                                                <View style={styles.addPetButton}>
-                                                        <Text style={styles.addPetButtonText}>开始添加</Text>
-                                                        <Ionicons name="arrow-forward" size={16} color={colors.primary} />
-                                                </View>
-                                        </LinearGradient>
-                                </TouchableOpacity>
+  // 渲染卡片
+  const renderCard = (card: any, index: number) => {
+    // AI 卡片在第一个位置做成满宽
+    if (card.type === 'ai' && index === 0) {
+      return <AICard key={card.id} card={card} fullWidth />;
+    }
+    
+    switch (card.type) {
+      case 'image':
+        return <ImageCard key={card.id} card={card} />;
+      case 'knowledge':
+        return <KnowledgeCard key={card.id} card={card} />;
+      case 'ai':
+        return <AICard key={card.id} card={card} />;
+      case 'tip':
+        return <TipCard key={card.id} card={card} />;
+      default:
+        return null;
+    }
+  };
 
-                                {/* 功能入口 */}
-                                <View style={styles.quickActions}>
-                                        <Text style={styles.sectionTitle}>快捷功能</Text>
-                                        <View style={styles.actionGrid}>
-                                                <TouchableOpacity style={styles.actionItem} activeOpacity={0.7}>
-                                                        <LinearGradient
-                                                                colors={['#E8F5E9', '#C8E6C9']}
-                                                                style={styles.actionIconBg}
-                                                        >
-                                                                <Ionicons name="calendar-outline" size={24} color="#4CAF50" />
-                                                        </LinearGradient>
-                                                        <Text style={styles.actionLabel}>疫苗提醒</Text>
-                                                </TouchableOpacity>
+  // 分成两列
+  const leftColumn = feedData.filter((_, i) => i % 2 === 0);
+  const rightColumn = feedData.filter((_, i) => i % 2 === 1);
 
-                                                <TouchableOpacity style={styles.actionItem} activeOpacity={0.7}>
-                                                        <LinearGradient
-                                                                colors={['#E3F2FD', '#BBDEFB']}
-                                                                style={styles.actionIconBg}
-                                                        >
-                                                                <Ionicons name="medical-outline" size={24} color="#2196F3" />
-                                                        </LinearGradient>
-                                                        <Text style={styles.actionLabel}>健康档案</Text>
-                                                </TouchableOpacity>
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
+      {/* 极简头部 */}
+      <SimpleHeader />
 
-                                                <TouchableOpacity style={styles.actionItem} activeOpacity={0.7}>
-                                                        <LinearGradient
-                                                                colors={['#FFF3E0', '#FFE0B2']}
-                                                                style={styles.actionIconBg}
-                                                        >
-                                                                <Ionicons name="nutrition-outline" size={24} color="#FF9800" />
-                                                        </LinearGradient>
-                                                        <Text style={styles.actionLabel}>饮食记录</Text>
-                                                </TouchableOpacity>
+      <ScrollView
+        flex={1}
+        backgroundColor={colors.background}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
+        {/* Hero 大图 */}
+        <View paddingTop={8}>
+          <HeroCard />
+        </View>
 
-                                                <TouchableOpacity style={styles.actionItem} activeOpacity={0.7}>
-                                                        <LinearGradient
-                                                                colors={['#FCE4EC', '#F8BBD9']}
-                                                                style={styles.actionIconBg}
-                                                        >
-                                                                <Ionicons name="camera-outline" size={24} color="#E91E63" />
-                                                        </LinearGradient>
-                                                        <Text style={styles.actionLabel}>相册</Text>
-                                                </TouchableOpacity>
-                                        </View>
-                                </View>
+        {/* 快捷功能 */}
+        <QuickActions />
 
-                                {/* 每日小贴士 */}
-                                <View style={styles.tipSection}>
-                                        <Text style={styles.sectionTitle}>今日小贴士</Text>
-                                        <LinearGradient
-                                                colors={[colors.secondary + '20', colors.secondary + '10']}
-                                                style={styles.tipCard}
-                                        >
-                                                <View style={styles.tipHeader}>
-                                                        <Text style={styles.tipEmoji}>💡</Text>
-                                                        <Text style={styles.tipTag}>健康提醒</Text>
-                                                </View>
-                                                <Text style={styles.tipTitle}>春季驱虫注意事项</Text>
-                                                <Text style={styles.tipContent}>
-                                                        春季是寄生虫活跃的季节，建议每月进行一次体外驱虫，每三个月进行一次体内驱虫。
-                                                </Text>
-                                                <TouchableOpacity style={styles.tipButton}>
-                                                        <Text style={styles.tipButtonText}>了解更多</Text>
-                                                </TouchableOpacity>
-                                        </LinearGradient>
-                                </View>
+        {/* 今日精选 */}
+        <YStack paddingHorizontal={16} marginBottom={8}>
+          <XStack justifyContent="space-between" alignItems="center" marginBottom={12}>
+            <Text fontSize={17} fontWeight="700" color={colors.textPrimary}>
+              今日精选
+            </Text>
+            <Text fontSize={13} color={colors.textSecondary}>
+              查看更多
+            </Text>
+          </XStack>
+        </YStack>
+        
+        <FeaturedCard
+          title="春季驱虫完全指南"
+          subtitle="每月体外驱虫，每三月体内驱虫，远离寄生虫"
+          imageUrl="https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800"
+          tag="健康必读"
+        />
 
-                                {/* 底部留白 */}
-                                <View style={{ height: 30 }} />
-                        </ScrollView>
-                </View>
-        );
+        {/* AI 功能入口 - 满宽 */}
+        <YStack paddingHorizontal={16} marginBottom={8}>
+          <XStack justifyContent="space-between" alignItems="center" marginBottom={12}>
+            <Text fontSize={17} fontWeight="700" color={colors.textPrimary}>
+              AI 智能工具
+            </Text>
+          </XStack>
+          <AICard card={aiCards[0]} fullWidth />
+        </YStack>
+
+        {/* 发现更多 - 瀑布流 */}
+        <YStack paddingHorizontal={16}>
+          <XStack justifyContent="space-between" alignItems="center" marginBottom={16}>
+            <Text fontSize={17} fontWeight="700" color={colors.textPrimary}>
+              发现更多
+            </Text>
+            <Text fontSize={13} color={colors.textSecondary}>
+              刷新
+            </Text>
+          </XStack>
+
+          {/* 双列瀑布流 */}
+          <XStack justifyContent="space-between">
+            <YStack flex={1} marginRight={6}>
+              {leftColumn.slice(0, 6).map((card, index) => renderCard(card, index))}
+            </YStack>
+            <YStack flex={1} marginLeft={6}>
+              {rightColumn.slice(0, 6).map((card, index) => renderCard(card, index))}
+            </YStack>
+          </XStack>
+        </YStack>
+
+        {/* 底部留白 */}
+        <View height={100} />
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
-
-const styles = StyleSheet.create({
-        container: {
-                flex: 1,
-                backgroundColor: colors.background,
-        },
-        headerGradient: {
-                paddingBottom: 20,
-        },
-        headerContent: {
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingHorizontal: 20,
-                paddingTop: 12,
-        },
-        greeting: {
-                fontSize: 14,
-                color: 'rgba(255,255,255,0.9)',
-                marginBottom: 4,
-        },
-        headerTitle: {
-                fontSize: 28,
-                fontWeight: '700',
-                color: '#FFF',
-        },
-        settingsButton: {
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                alignItems: 'center',
-                justifyContent: 'center',
-        },
-        content: {
-                flex: 1,
-                marginTop: -10,
-        },
-        scrollContent: {
-                paddingHorizontal: 16,
-                paddingTop: 10,
-        },
-        addPetCard: {
-                borderRadius: 20,
-                padding: 24,
-                alignItems: 'center',
-                marginBottom: 20,
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.15,
-                shadowRadius: 12,
-                elevation: 4,
-        },
-        addPetIconContainer: {
-                marginBottom: 16,
-        },
-        addPetIconBg: {
-                width: 64,
-                height: 64,
-                borderRadius: 32,
-                alignItems: 'center',
-                justifyContent: 'center',
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 4,
-        },
-        addPetTitle: {
-                fontSize: 20,
-                fontWeight: '700',
-                color: colors.textPrimary,
-                marginBottom: 8,
-        },
-        addPetSubtitle: {
-                fontSize: 14,
-                color: colors.textSecondary,
-                marginBottom: 20,
-        },
-        addPetButton: {
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#FFF',
-                paddingHorizontal: 20,
-                paddingVertical: 12,
-                borderRadius: 25,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                elevation: 2,
-        },
-        addPetButtonText: {
-                fontSize: 15,
-                fontWeight: '600',
-                color: colors.primary,
-                marginRight: 8,
-        },
-        quickActions: {
-                marginBottom: 24,
-        },
-        sectionTitle: {
-                fontSize: 18,
-                fontWeight: '600',
-                color: colors.textPrimary,
-                marginBottom: 16,
-        },
-        actionGrid: {
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-        },
-        actionItem: {
-                width: (width - 48) / 4,
-                alignItems: 'center',
-        },
-        actionIconBg: {
-                width: 56,
-                height: 56,
-                borderRadius: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 8,
-        },
-        actionLabel: {
-                fontSize: 12,
-                color: colors.textSecondary,
-                fontWeight: '500',
-        },
-        tipSection: {
-                marginBottom: 16,
-        },
-        tipCard: {
-                borderRadius: 16,
-                padding: 20,
-                borderWidth: 1,
-                borderColor: colors.secondary + '30',
-        },
-        tipHeader: {
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 12,
-        },
-        tipEmoji: {
-                fontSize: 20,
-                marginRight: 8,
-        },
-        tipTag: {
-                fontSize: 12,
-                color: colors.secondary,
-                fontWeight: '600',
-                backgroundColor: colors.secondary + '20',
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderRadius: 10,
-        },
-        tipTitle: {
-                fontSize: 16,
-                fontWeight: '600',
-                color: colors.textPrimary,
-                marginBottom: 8,
-        },
-        tipContent: {
-                fontSize: 14,
-                color: colors.textSecondary,
-                lineHeight: 22,
-                marginBottom: 12,
-        },
-        tipButton: {
-                alignSelf: 'flex-start',
-        },
-        tipButtonText: {
-                fontSize: 14,
-                color: colors.secondary,
-                fontWeight: '600',
-        },
-});

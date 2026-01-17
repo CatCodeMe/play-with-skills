@@ -4,69 +4,71 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { TamaguiProvider } from 'tamagui';
 
-import { PetScreen, HealthScreen, AIScreen } from './src/screens';
+import HomeScreen from './src/screens/HomeScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import { HealthScreen } from './src/screens';
 import { colors } from './src/theme/colors';
+import tamaguiConfig from './tamagui.config';
 
 const Tab = createBottomTabNavigator();
 
-type IconName = 'paw' | 'paw-outline' | 'book' | 'book-outline' | 'chatbubble-ellipses' | 'chatbubble-ellipses-outline';
-
-function TabBarIcon({ route, focused, color, size }: { route: string; focused: boolean; color: string; size: number }) {
-  let iconName: IconName = 'paw';
-
-  if (route === '我的毛孩') {
-    iconName = focused ? 'paw' : 'paw-outline';
-  } else if (route === '健康百科') {
-    iconName = focused ? 'book' : 'book-outline';
-  } else if (route === 'AI助手') {
-    iconName = focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline';
-  }
-
-  return <Ionicons name={iconName} size={size} color={color} />;
-}
-
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarActiveTintColor: colors.tabActive,
-            tabBarInactiveTintColor: colors.tabInactive,
-          }}
-        >
-          <Tab.Screen
-            name="我的毛孩"
-            component={PetScreen}
-            options={{
-              tabBarIcon: ({ focused, color, size }) => (
-                <TabBarIcon route="我的毛孩" focused={focused} color={color} size={size} />
-              ),
+    <TamaguiProvider config={tamaguiConfig} defaultTheme="light">
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <Tab.Navigator
+            screenOptions={{
+              headerShown: false,
+              tabBarActiveTintColor: colors.primary,
+              tabBarInactiveTintColor: colors.textLight,
+              tabBarStyle: {
+                backgroundColor: 'white',
+                borderTopColor: colors.border,
+                borderTopWidth: 1,
+                paddingTop: 8,
+                paddingBottom: 8,
+                height: 60,
+              },
+              tabBarLabelStyle: {
+                fontSize: 11,
+                fontWeight: '500',
+              },
             }}
-          />
-          <Tab.Screen
-            name="健康百科"
-            component={HealthScreen}
-            options={{
-              tabBarIcon: ({ focused, color, size }) => (
-                <TabBarIcon route="健康百科" focused={focused} color={color} size={size} />
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="AI助手"
-            component={AIScreen}
-            options={{
-              tabBarIcon: ({ focused, color, size }) => (
-                <TabBarIcon route="AI助手" focused={focused} color={color} size={size} />
-              ),
-            }}
-          />
-        </Tab.Navigator>
-      </NavigationContainer>
-      <StatusBar style="dark" />
-    </SafeAreaProvider>
+          >
+            <Tab.Screen
+              name="首页"
+              component={HomeScreen}
+              options={{
+                tabBarIcon: ({ focused, color }) => (
+                  <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+                ),
+              }}
+            />
+            <Tab.Screen
+              name="发现"
+              component={HealthScreen}
+              options={{
+                tabBarIcon: ({ focused, color }) => (
+                  <Ionicons name={focused ? 'compass' : 'compass-outline'} size={22} color={color} />
+                ),
+              }}
+            />
+            <Tab.Screen
+              name="我的"
+              component={ProfileScreen}
+              options={{
+                tabBarIcon: ({ focused, color }) => (
+                  <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
+                ),
+              }}
+            />
+          </Tab.Navigator>
+        </NavigationContainer>
+        <StatusBar style="dark" />
+      </SafeAreaProvider>
+    </TamaguiProvider>
   );
 }
